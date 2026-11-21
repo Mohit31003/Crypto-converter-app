@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Crypto Converter & Live Rates</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#7c3aed" />
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #7c3aed;
+      --primary-light: rgba(124, 58, 237, 0.12);
+      --input-bg: #f9fafb;
+      --shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.08);
+      --green: #10b981;
+      --red: #ef4444;
+    }
+
+    body.dark {
+      --bg: #090d16;
+      --card: #111827;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --input-bg: #1f2937;
+      --shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    body.amoled {
+      --bg: #000000;
+      --card: #0a0a0a;
+      --text: #ffffff;
+      --muted: #888888;
+      --border: #1a1a1a;
+      --input-bg: #141414;
+      --shadow: none;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+      padding-bottom: 90px;
+      min-height: 100vh;
+    }
+
+    /* Premium Header with Absolute Center App Name */
+    .app-header {
+      background: linear-gradient(180deg, var(--card) 0%, var(--primary-light) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(12px);
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+      height: 40px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 2;
+    }
+
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px var(--primary-light);
+    }
+
+    .app-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      background: linear-gradient(135deg, var(--text) 20%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      white-space: nowrap;
+    }
+
+    .menu-btn {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    /* LED Strip Marquee Ticker */
+    .ticker-wrap {
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      white-space: nowrap;
+      padding: 6px 0;
+      font-size: 12px;
+      font-weight: 600;
+      position: sticky;
+      top: 64px;
+      z-index: 39;
+    }
+
+    .ticker {
+      display: inline-block;
+      animation: marquee 35s linear infinite;
+    }
+
+    .ticker-item {
+      display: inline-flex;
+      align-items: center;
+      margin-right: 28px;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .ticker-item.item-up {
+      border-bottom: 2px solid var(--green);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    }
+
+    .ticker-item.item-down {
+      border-bottom: 2px solid var(--red);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+    }
+
+    .up { color: var(--green); font-weight: 700; }
+    .down { color: var(--red); font-weight: 700; }
+
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* Currency Bar */
+    .currency-bar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      position: sticky;
+      top: 101px;
+      z-index: 38;
+    }
+
+    .currency-chips {
+      display: flex;
+      gap: 6px;
+    }
+
+    .c-chip {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .c-chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Sidebar Drawer */
+    .menu-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: none;
+      z-index: 99;
+      backdrop-filter: blur(2px);
+    }
+
+    .menu-overlay.active { display: block; }
+
+    .sidebar-drawer {
+      position: fixed;
+      top: 0;
+      right: -310px;
+      width: 300px;
+      height: 100vh;
+      background: var(--card);
+      border-left: 1px solid var(--border);
+      padding: 20px 16px;
+      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+      z-index: 100;
+      transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .sidebar-drawer.active { right: 0; }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .drawer-header h3 { font-size: 17px; font-weight: 800; }
+
+    .menu-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text);
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      width: 100%;
+      text-align: left;
+      text-decoration: none;
+    }
+
+    .menu-item:active { background: var(--primary-light); }
+
+    .settings-panel {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .setting-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    .setting-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .theme-options { display: flex; gap: 8px; }
+    .t-circle { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid var(--border); }
+    .t-circle.active { border: 2px solid var(--primary); transform: scale(1.15); }
+
+    .accent-options { display: flex; gap: 6px; }
+    .a-dot { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+    .a-dot.active { border-color: var(--text); transform: scale(1.15); }
+
+    .dec-group { display: flex; background: var(--card); border-radius: 8px; padding: 2px; border: 1px solid var(--border); }
+    .dec-btn { padding: 4px 8px; font-size: 11px; font-weight: 700; border: none; background: transparent; color: var(--muted); border-radius: 6px; cursor: pointer; }
+    .dec-btn.active { background: var(--primary); color: white; }
+
+    .switch {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      background: var(--border);
+      border-radius: 20px;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+
+    .switch::after {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      top: 2px;
+      left: 2px;
+      transition: 0.3s;
+    }
+
+    .switch.on { background: var(--primary); }
+    .switch.on::after { transform: translateX(18px); }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; animation: fadeIn 0.25s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .status-badge { color: var(--primary); cursor: pointer; }
+
+    .input-box {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      position: relative;
+    }
+
+    .input-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .input-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    input[type="number"], input[type="text"].output-display {
+      width: 100%;
+      background: transparent;
+      border: none;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      outline: none;
+    }
+
+    .asset-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .asset-btn img { width: 22px; height: 22px; border-radius: 50%; }
+
+    .swap-wrap {
+      display: flex;
+      justify-content: center;
+      margin: -16px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .swap-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      border: 4px solid var(--card);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 16px var(--primary-light);
+      transition: transform 0.2s;
+    }
+
+    .swap-btn:active { transform: rotate(180deg); }
+
+    .quick-btns {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .q-btn {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .q-btn:active { background: var(--primary-light); color: var(--primary); }
+
+    .copy-bar {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--primary-light);
+      border-radius: 14px;
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .copy-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Market Tabs & Controls */
+    .market-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .m-tab {
+      flex: 1;
+      padding: 10px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .m-tab.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .market-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .sort-select {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+    }
+
+    .market-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .market-left { display: flex; align-items: center; gap: 12px; }
+    .market-left img { width: 32px; height: 32px; border-radius: 50%; }
+    .coin-info h4 { font-size: 15px; font-weight: 700; }
+    .coin-info span { font-size: 12px; color: var(--muted); text-transform: uppercase; }
+
+    .market-right-side { display: flex; align-items: center; gap: 14px; }
+    .coin-price { text-align: right; }
+    .coin-price h4 { font-size: 15px; font-weight: 700; }
+    .coin-price span { font-size: 12px; font-weight: 600; display: inline-block; }
+
+    .star-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted); }
+    .star-btn.fav { color: #f59e0b; }
+
+    /* Portfolio Page Layout */
+    .portfolio-summary {
+      background: linear-gradient(135deg, var(--primary), #ec4899);
+      color: white;
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .add-holding-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+    }
+
+    .holding-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      border-radius: 16px;
+      margin-bottom: 10px;
+    }
+
+    .del-holding {
+      background: none;
+      border: none;
+      color: var(--red);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* Redesigned P&L Profit Calculator Layout */
+    .calc-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .calc-group {
+      margin-bottom: 16px;
+    }
+
+    .calc-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .calc-input-wrap {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    .calc-input-wrap input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      outline: none;
+    }
+
+    .calc-result-box {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    /* Footer with 4 Tabs and Dividers */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 50;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      flex: 1;
+      position: relative;
+    }
+
+    .nav-btn:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 15%;
+      height: 70%;
+      width: 1px;
+      background: var(--border);
+    }
+
+    .nav-btn.active { color: var(--primary); }
+    .nav-icon { font-size: 18px; }
+
+    /* Modals */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal.hidden-by-picker {
+      display: none !important;
+    }
+
+    .modal-content {
+      background: var(--card);
+      width: 100%;
+      max-width: 480px;
+      height: 75vh;
+      border-radius: 24px 24px 0 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .close-modal {
+      background: var(--input-bg);
+      border: none;
+      color: var(--text);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .asset-list { overflow-y: auto; flex: 1; }
+    .asset-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+    }
+    .asset-option:hover { background: var(--input-bg); }
+    .asset-left { display: flex; align-items: center; gap: 12px; }
+    .asset-left img { width: 28px; height: 28px; border-radius: 50%; }
+    .fiat-badge {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="17 1 21 5 17 9"></polyline>
+            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+            <polyline points="7 23 3 19 7 15"></polyline>
+            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+          </svg>
+        </div>
+      </div>
+      <span class="app-title">CryptoConv</span>
+      <button class="menu-btn" id="menuToggle" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <!-- Ticker -->
+  <div class="ticker-wrap">
+    <div class="ticker" id="liveTicker">
+      <span class="ticker-item">Fetching live market rates...</span>
+    </div>
+  </div>
+
+  <!-- Base Currency Bar -->
+  <div class="currency-bar">
+    <span>Base Currency:</span>
+    <div class="currency-chips">
+      <button class="c-chip active" id="chip-inr" onclick="changeGlobalCurrency('inr')">INR ₹</button>
+      <button class="c-chip" id="chip-usd" onclick="changeGlobalCurrency('usd')">USD $</button>
+      <button class="c-chip" id="chip-eur" onclick="changeGlobalCurrency('eur')">EUR €</button>
+      <button class="c-chip" id="chip-gbp" onclick="changeGlobalCurrency('gbp')">GBP £</button>
+    </div>
+  </div>
+
+  <!-- Sidebar Drawer -->
+  <div class="menu-overlay" id="menuOverlay"></div>
+  <aside class="sidebar-drawer" id="sidebarDrawer">
+    <div class="drawer-header">
+      <h3>Menu & Settings</h3>
+      <button class="close-modal" onclick="closeMenu()">✕</button>
+    </div>
+
+    <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">App Preferences</div>
+
+    <div class="settings-panel">
+      <div class="setting-row">
+        <div class="setting-label"><span class="setting-icon">🎨</span> Theme</div>
+        <div class="theme-options">
+          <div class="t-circle active" id="theme-light" style="background:#f4f6fb;" onclick="setTheme('light')" title="Light"></div>
+          <div class="t-circle" id="theme-dark" style="background:#111827;" onclick="setTheme('dark')" title="Dark"></div>
+          <div class="t-circle" id="theme-amoled" style="background:#000000;" onclick="setTheme('amoled')" title="AMOLED Black"></div>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-label"><span class="setting-icon">✨</span> Accent</div>
+        <div class="accent-options">
+          <div class="a-dot active" data-color="#7c3aed" style="background:#7c3aed;" onclick="setAccent('#7c3aed', this)"></div>
+          <div class="a-dot" data-color="#2563eb" style="background:#2563eb;" onclick="setAccent('#2563eb', this)"></div>
+          <div class="a-dot" data-color="#10b981" style="background:#10b981;" onclick="setAccent('#10b981', this)"></div>
+          <div class="a-dot" data-color="#f59e0b" style="background:#f59e0b;" onclick="setAccent('#f59e0b', this)"></div>
+          <div class="a-dot" data-color="#ec4899" style="background:#ec4899;" onclick="setAccent('#ec4899', this)"></div>
+          <div class="a-dot" data-color="#ef4444" style="background:#ef4444;" onclick="setAccent('#ef4444', this)"></div>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-label"><span class="setting-icon">0.00</span> Decimals</div>
+        <div class="dec-group">
+          <button class="dec-btn active" id="dec-2" onclick="setDecimals(2)">2</button>
+          <button class="dec-btn" id="dec-4" onclick="setDecimals(4)">4</button>
+          <button class="dec-btn" id="dec-6" onclick="setDecimals(6)">6</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-label"><span class="setting-icon">1,000</span> Comma Format</div>
+        <div class="switch on" id="toggleComma" onclick="toggleSetting('comma')"></div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-label"><span class="setting-icon">Aa</span> Currency Name</div>
+        <div class="switch on" id="toggleName" onclick="toggleSetting('showName')"></div>
+      </div>
+    </div>
+
+    <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:4px;">Tools & Info</div>
+
+    <button class="menu-item" onclick="fetchAllData(); closeMenu();"><span>🔄 Refresh Live Rates</span></button>
+    <button class="menu-item" onclick="switchPage('market'); closeMenu();"><span>📈 Live Market Rates</span></button>
+    <button class="menu-item" onclick="switchPage('portfolio'); closeMenu();"><span>💼 Portfolio Tracker</span></button>
+    <button class="menu-item" onclick="switchPage('calculator'); closeMenu();"><span>🧮 Profit Calculator</span></button>
+
+    <a href="market://details?id=com.fixbitstudio.cryptoconv" class="menu-item" target="_blank"><span>⭐ Rate Us on Play Store</span></a>
+
+    <div style="margin-top: auto; padding-top: 10px; text-align: center; font-size: 11px; color: var(--muted); font-weight: 500;">
+      Developed by <span style="font-weight: 700; color: var(--primary);">FixBit Studio</span>
+    </div>
+  </aside>
+
+  <div class="container">
+    <!-- PAGE 1: CONVERTER -->
+    <div id="page-converter" class="page active">
+      <div class="card">
+        <div class="card-header">
+          <span>GLOBAL ASSET CONVERTER</span>
+          <span class="status-badge" id="lastUpdated" onclick="fetchAllData()">Updating in 45s...</span>
+        </div>
+
+        <div class="input-box">
+          <div class="input-label"><span>FROM</span></div>
+          <div class="input-row">
+            <input type="number" id="fromAmount" value="1" min="0" step="any" />
+            <button class="asset-btn" id="fromBtn" onclick="openPicker('from')">
+              <span id="fromSymbol">USDT</span> ▾
+            </button>
+          </div>
+          <div style="font-size:11px; color:var(--muted); margin-top:4px;" id="fromName">Tether</div>
+        </div>
+
+        <div class="swap-wrap">
+          <button class="swap-btn" id="swapBtn" title="Swap">⇅</button>
+        </div>
+
+        <div class="input-box">
+          <div class="input-label"><span>TO</span></div>
+          <div class="input-row">
+            <input type="text" class="output-display" id="toAmount" readonly />
+            <button class="asset-btn" id="toBtn" onclick="openPicker('to')">
+              <span id="toSymbol">INR</span> ▾
+            </button>
+          </div>
+          <div style="font-size:11px; color:var(--muted); margin-top:4px;" id="toName">Indian Rupee</div>
+        </div>
+
+        <div class="quick-btns">
+          <button class="q-btn" onclick="multiplyAmount(10)">10×</button>
+          <button class="q-btn" onclick="multiplyAmount(100)">100×</button>
+          <button class="q-btn" onclick="multiplyAmount(0.5)">0.5×</button>
+          <button class="q-btn" onclick="resetAmount()">Reset</button>
+        </div>
+
+        <div class="copy-bar">
+          <span id="rateSummary">1 USDT = -- INR</span>
+          <button class="copy-btn" onclick="copyResult()">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 2: LIVE MARKET -->
+    <div id="page-market" class="page">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:16px;">Live Market Rates</h3>
+        <span style="font-size:12px; color:var(--muted);" id="marketCount">Loading...</span>
+      </div>
+
+      <div class="market-tabs">
+        <button class="m-tab active" id="tabAll" onclick="switchMarketTab('all')">🌐 All Coins</button>
+        <button class="m-tab" id="tabFav" onclick="switchMarketTab('fav')">⭐ Favorites</button>
+      </div>
+
+      <div class="market-controls">
+        <input type="text" class="search-input" id="marketSearch" placeholder="Search coin..." oninput="filterMarketList()" />
+        <select class="sort-select" id="marketSort" onchange="filterMarketList()">
+          <option value="market_cap">Market Cap</option>
+          <option value="gainers">🚀 Top Gainers</option>
+          <option value="losers">🔻 Top Losers</option>
+          <option value="name">🔤 Name (A-Z)</option>
+        </select>
+      </div>
+
+      <div id="marketList">Loading global market...</div>
+    </div>
+
+    <!-- PAGE 3: PORTFOLIO TRACKER -->
+    <div id="page-portfolio" class="page">
+      <div class="portfolio-summary">
+        <div>
+          <div style="font-size:11px; opacity:0.8; text-transform:uppercase; font-weight:700;">Total Portfolio Net Worth</div>
+          <div id="portfolioTotal" style="font-size:26px; font-weight:800; margin-top:2px;">0.00</div>
+        </div>
+        <button class="add-holding-btn" onclick="openAddHoldingModal()">+ Add Asset</button>
+      </div>
+      <h3 style="font-size:15px; margin-bottom:12px; font-weight:700;">Your Holdings</h3>
+      <div id="portfolioList">
+        <div style="text-align:center; color:var(--muted); padding:30px;">No holdings added yet. Click '+ Add Asset' to start tracking.</div>
+      </div>
+    </div>
+
+    <!-- PAGE 4: PROFIT CALCULATOR -->
+    <div id="page-calculator" class="page">
+      <div class="calc-card">
+        <h3 style="font-size:16px; margin-bottom:18px; font-weight:800;">Crypto Profit / Loss Calculator</h3>
+
+        <div class="calc-group">
+          <label>Investment Amount</label>
+          <div class="calc-input-wrap">
+            <input type="number" id="calcInvest" placeholder="e.g. 10000" oninput="calculateROI()" />
+          </div>
+        </div>
+
+        <div class="calc-group">
+          <label>Buy Price</label>
+          <div class="calc-input-wrap">
+            <input type="number" id="calcBuy" placeholder="e.g. 85" oninput="calculateROI()" />
+          </div>
+        </div>
+
+        <div class="calc-group">
+          <label>Sell Price</label>
+          <div class="calc-input-wrap">
+            <input type="number" id="calcSell" placeholder="e.g. 95" oninput="calculateROI()" />
+          </div>
+        </div>
+
+        <div class="calc-result-box">
+          <div style="font-size:12px; color:var(--muted); font-weight:700; text-transform:uppercase;">Net Profit / Loss</div>
+          <div id="roiResult" style="font-size:24px; font-weight:800; margin-top:6px;">0.00 (0%)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Asset Picker Modal -->
+  <div class="modal" id="assetModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="font-size:16px;">Select Crypto or Currency</h3>
+        <button class="close-modal" onclick="closePicker()">✕</button>
+      </div>
+      <input type="text" class="search-input" id="assetSearch" placeholder="Search BTC, INR, USD, Pi..." oninput="filterAssets()" />
+      <div class="asset-list" id="assetList"></div>
+    </div>
+  </div>
+
+  <!-- Add Portfolio Holding Modal -->
+  <div class="modal" id="addHoldingModal">
+    <div class="modal-content" style="height: auto; max-height: 80vh;">
+      <div class="modal-header">
+        <h3 style="font-size:16px;">Add Crypto to Portfolio</h3>
+        <button class="close-modal" onclick="closeAddHoldingModal()">✕</button>
+      </div>
+      <div class="calc-group">
+        <label>Select Coin</label>
+        <button class="asset-btn" id="holdingCoinBtn" onclick="openPicker('holding')" style="width:100%; justify-content:space-between; padding:14px; margin-bottom:12px;">
+          <span id="holdingCoinSymbol">Select Coin</span> ▾
+        </button>
+      </div>
+      <div class="calc-group">
+        <label>Quantity Owned</label>
+        <div class="calc-input-wrap">
+          <input type="number" id="holdingQty" placeholder="e.g. 0.5" step="any" />
+        </div>
+      </div>
+      <button class="copy-btn" style="width:100%; padding:14px; font-size:15px; margin-top:10px; border-radius:14px;" onclick="saveHolding()">Add to Portfolio</button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nav-converter" onclick="switchPage('converter')">
+      <span class="nav-icon">⇄</span>
+      <span>Converter</span>
+    </button>
+    <button class="nav-btn" id="nav-market" onclick="switchPage('market')">
+      <span class="nav-icon">📊</span>
+      <span>Live Rates</span>
+    </button>
+    <button class="nav-btn" id="nav-portfolio" onclick="switchPage('portfolio')">
+      <span class="nav-icon">💼</span>
+      <span>Portfolio</span>
+    </button>
+    <button class="nav-btn" id="nav-calculator" onclick="switchPage('calculator')">
+      <span class="nav-icon">🧮</span>
+      <span>Profit Calc</span>
+    </button>
+  </nav>
+
+  <script>
+    const CACHE_ASSETS_KEY = "cryptoconv_cached_assets_v1";
+    const CACHE_TIME_KEY = "cryptoconv_cached_time_v1";
+
+    let allAssets = [];
+    let fromAsset = { id: "tether", symbol: "USDT", name: "Tether", priceUsd: 1, image: "" };
+    let toAsset = { id: "inr", symbol: "INR", name: "Indian Rupee", priceUsd: 0.0119, image: "" };
+    let globalCurrency = "inr";
+    let activePickerSide = "from";
+    let countdown = 45;
+    let timerInterval = null;
+    let showPercentage = true;
+    let displayToggleInterval = null;
+    let currentMarketTab = "all";
+    let selectedHoldingAsset = null;
+
+    let userPrefs = {
+      theme: localStorage.getItem("pref_theme") || "light",
+      accent: localStorage.getItem("pref_accent") || "#7c3aed",
+      decimals: parseInt(localStorage.getItem("pref_decimals")) || 2,
+      comma: localStorage.getItem("pref_comma") !== "false",
+      showName: localStorage.getItem("pref_showName") !== "false",
+      favorites: JSON.parse(localStorage.getItem("pref_favorites") || "[]"),
+      holdings: JSON.parse(localStorage.getItem("pref_holdings") || '[{"id":"bitcoin","qty":0.05},{"id":"ethereum","qty":0.8}]')
+    };
+
+    const currencySymbols = { inr: "₹", usd: "$", eur: "€", gbp: "£" };
+
+    function applyPreferences() {
+      setTheme(userPrefs.theme, false);
+      const dot = document.querySelector(`.a-dot[data-color="${userPrefs.accent}"]`);
+      if (dot) setAccent(userPrefs.accent, dot, false);
+      setDecimals(userPrefs.decimals, false);
+
+      document.getElementById("toggleComma").classList.toggle("on", userPrefs.comma);
+      document.getElementById("toggleName").classList.toggle("on", userPrefs.showName);
+      document.getElementById("fromName").style.display = userPrefs.showName ? "block" : "none";
+      document.getElementById("toName").style.display = userPrefs.showName ? "block" : "none";
+    }
+
+    function setTheme(mode, save = true) {
+      document.body.classList.remove("dark", "amoled");
+      if (mode === "dark") document.body.classList.add("dark");
+      if (mode === "amoled") document.body.classList.add("amoled");
+
+      document.querySelectorAll(".t-circle").forEach(el => el.classList.remove("active"));
+      document.getElementById("theme-" + mode).classList.add("active");
+
+      userPrefs.theme = mode;
+      if (save) localStorage.setItem("pref_theme", mode);
+    }
+
+    function setAccent(hex, el, save = true) {
+      document.documentElement.style.setProperty("--primary", hex);
+      document.documentElement.style.setProperty("--primary-light", hex + "22");
+      document.querySelectorAll(".a-dot").forEach(d => d.classList.remove("active"));
+      if (el) el.classList.add("active");
+
+      userPrefs.accent = hex;
+      if (save) localStorage.setItem("pref_accent", hex);
+    }
+
+    function setDecimals(num, save = true) {
+      userPrefs.decimals = num;
+      document.querySelectorAll(".dec-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById("dec-" + num).classList.add("active");
+      if (save) localStorage.setItem("pref_decimals", num);
+      convert();
+      updateMarketPage();
+      renderPortfolio();
+    }
+
+    function toggleSetting(key) {
+      userPrefs[key] = !userPrefs[key];
+      localStorage.setItem("pref_" + key, userPrefs[key]);
+
+      if (key === "comma") {
+        document.getElementById("toggleComma").classList.toggle("on", userPrefs.comma);
+        convert();
+        updateMarketPage();
+        renderPortfolio();
+      } else if (key === "showName") {
+        document.getElementById("toggleName").classList.toggle("on", userPrefs.showName);
+        document.getElementById("fromName").style.display = userPrefs.showName ? "block" : "none";
+        document.getElementById("toName").style.display = userPrefs.showName ? "block" : "none";
+      }
+    }
+
+    function formatNumber(val) {
+      if (isNaN(val)) return "0.00";
+      const fixed = val < 0.01 && val > 0 ? val.toFixed(6) : val.toFixed(userPrefs.decimals);
+      if (!userPrefs.comma) return fixed;
+      const parts = fixed.split(".");
+      parts[0] = parseFloat(parts[0]).toLocaleString("en-IN");
+      return parts.join(".");
+    }
+
+    function toggleFavorite(e, coinId) {
+      e.stopPropagation();
+      const idx = userPrefs.favorites.indexOf(coinId);
+      if (idx > -1) userPrefs.favorites.splice(idx, 1);
+      else userPrefs.favorites.push(coinId);
+      localStorage.setItem("pref_favorites", JSON.stringify(userPrefs.favorites));
+      filterMarketList();
+    }
+
+    const menuToggle = document.getElementById("menuToggle");
+    const sidebarDrawer = document.getElementById("sidebarDrawer");
+    const menuOverlay = document.getElementById("menuOverlay");
+
+    menuToggle.addEventListener("click", () => {
+      sidebarDrawer.classList.add("active");
+      menuOverlay.classList.add("active");
+    });
+
+    function closeMenu() {
+      sidebarDrawer.classList.remove("active");
+      menuOverlay.classList.remove("active");
+    }
+
+    menuOverlay.addEventListener("click", closeMenu);
+
+    function switchPage(pageId) {
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById("page-" + pageId).classList.add("active");
+      document.getElementById("nav-" + pageId).classList.add("active");
+      if (pageId === "portfolio") renderPortfolio();
+    }
+
+    function switchMarketTab(tab) {
+      currentMarketTab = tab;
+      document.getElementById("tabAll").classList.toggle("active", tab === "all");
+      document.getElementById("tabFav").classList.toggle("active", tab === "fav");
+      filterMarketList();
+    }
+
+    function changeGlobalCurrency(currId) {
+      globalCurrency = currId;
+      document.querySelectorAll(".c-chip").forEach(btn => btn.classList.remove("active"));
+      document.getElementById("chip-" + currId).classList.add("active");
+
+      const found = allAssets.find(a => a.id === currId);
+      if (found) {
+        updateTicker();
+        updateMarketPage();
+        renderPortfolio();
+      }
+    }
+
+    function applyAssetsData(combined, isFromCache = false) {
+      allAssets = combined;
+
+      const updatedFrom = allAssets.find(a => a.id === fromAsset.id);
+      const updatedTo = allAssets.find(a => a.id === toAsset.id);
+      if (updatedFrom) fromAsset = updatedFrom;
+      if (updatedTo) toAsset = updatedTo;
+
+      updatePickerButtons();
+      updateTicker();
+      updateMarketPage();
+      convert();
+      renderPortfolio();
+
+      if (isFromCache) {
+        document.getElementById("lastUpdated").innerText = "Syncing live...";
+      }
+    }
+
+    function loadCachedAssets() {
+      try {
+        const raw = localStorage.getItem(CACHE_ASSETS_KEY);
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          applyAssetsData(parsed, true);
+          return true;
+        }
+      } catch (e) {
+        // Ignore invalid cache
+      }
+      return false;
+    }
+
+    async function fetchAllData() {
+      try {
+        document.getElementById("lastUpdated").innerText = "↻ UPDATING...";
+
+        const [cryptoRes, fiatRes] = await Promise.all([
+          fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false"),
+          fetch("https://api.coingecko.com/api/v3/exchange_rates")
+        ]);
+
+        if (!cryptoRes.ok || !fiatRes.ok) throw new Error("API Error");
+
+        const cryptoData = await cryptoRes.json();
+        const fiatData = await fiatRes.json();
+
+        const combined = [];
+        const btcInUsd = fiatData.rates.usd.value;
+
+        Object.entries(fiatData.rates).forEach(([key, info]) => {
+          if (info.type === "fiat") {
+            combined.push({
+              id: key.toLowerCase(),
+              symbol: key.toUpperCase(),
+              name: info.name,
+              priceUsd: btcInUsd / info.value,
+              image: "",
+              type: "fiat",
+              change24h: 0
+            });
+          }
+        });
+
+        cryptoData.forEach(coin => {
+          combined.push({
+            id: coin.id,
+            symbol: coin.symbol.toUpperCase(),
+            name: coin.name,
+            priceUsd: coin.current_price,
+            image: coin.image,
+            type: "crypto",
+            change24h: coin.price_change_percentage_24h || 0
+          });
+        });
+
+        try {
+          localStorage.setItem(CACHE_ASSETS_KEY, JSON.stringify(combined));
+          localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+        } catch (e) {
+          // Ignore storage quota issues
+        }
+
+        applyAssetsData(combined, false);
+
+        countdown = 45;
+        startTimer();
+      } catch (err) {
+        document.getElementById("lastUpdated").innerText = "⚠ RETRY";
+        setTimeout(fetchAllData, 10000);
+      }
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          document.getElementById("lastUpdated").innerText = `Updated in ${countdown}s`;
+        } else {
+          fetchAllData();
+        }
+      }, 1000);
+    }
+
+    function startDisplayToggle() {
+      if (displayToggleInterval) clearInterval(displayToggleInterval);
+      displayToggleInterval = setInterval(() => {
+        showPercentage = !showPercentage;
+        if (document.getElementById("page-market").classList.contains("active")) {
+          filterMarketList();
+        }
+      }, 2000);
+    }
+
+    function updatePickerButtons() {
+      document.getElementById("fromName").innerText = fromAsset.name;
+      document.getElementById("fromBtn").innerHTML = `${fromAsset.image ? `<img src="${fromAsset.image}" />` : ""}<span>${fromAsset.symbol}</span> ▾`;
+
+      document.getElementById("toName").innerText = toAsset.name;
+      document.getElementById("toBtn").innerHTML = `${toAsset.image ? `<img src="${toAsset.image}" />` : ""}<span>${toAsset.symbol}</span> ▾`;
+    }
+
+    function updateTicker() {
+      const baseRate = (allAssets.find(a => a.id === globalCurrency) || { priceUsd: 0.0119 }).priceUsd;
+      const sym = currencySymbols[globalCurrency] || globalCurrency.toUpperCase() + " ";
+      const topCoins = allAssets.filter(a => a.type === "crypto").slice(0, 15);
+
+      let html = "";
+      topCoins.forEach(c => {
+        const price = formatNumber(c.priceUsd / baseRate);
+        const change = c.change24h.toFixed(2);
+        const isUp = change >= 0;
+        const cls = isUp ? "up" : "down";
+        const glowClass = isUp ? "item-up" : "item-down";
+        const arrow = isUp ? "▲" : "▼";
+        html += `<span class="ticker-item ${glowClass}" onclick="selectFromMarket('${c.id}')">${c.symbol}: ${sym}${price} <span class="${cls}">${arrow}${Math.abs(change)}%</span></span>`;
+      });
+      document.getElementById("liveTicker").innerHTML = html + html;
+    }
+
+    function updateMarketPage() {
+      filterMarketList();
+    }
+
+    function renderMarketList(items) {
+      const baseRate = (allAssets.find(a => a.id === globalCurrency) || { priceUsd: 0.0119 }).priceUsd;
+      const sym = currencySymbols[globalCurrency] || globalCurrency.toUpperCase() + " ";
+      const list = document.getElementById("marketList");
+      document.getElementById("marketCount").innerText = `${items.length} Assets`;
+
+      if (items.length === 0) {
+        list.innerHTML = `<div style="text-align:center; color:var(--muted); padding:30px;">No assets found.</div>`;
+        return;
+      }
+
+      let html = "";
+      items.forEach(c => {
+        const price = formatNumber(c.priceUsd / baseRate);
+        const changePct = c.change24h;
+        const absolutePoint = (c.priceUsd / baseRate) * (changePct / (100 + changePct));
+        const formattedPoint = formatNumber(Math.abs(absolutePoint));
+
+        const cls = changePct >= 0 ? "up" : "down";
+        const arrow = changePct >= 0 ? "+" : "-";
+        const isFav = userPrefs.favorites.includes(c.id);
+
+        let displayText = showPercentage ?
+          `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%` :
+          `${arrow}${sym}${formattedPoint}`;
+
+        html += `
+          <div class="market-item" onclick="selectFromMarket('${c.id}')">
+            <div class="market-left">
+              <img src="${c.image}" alt="${c.symbol}" />
+              <div class="coin-info">
+                <h4>${c.name}</h4>
+                <span>${c.symbol}</span>
+              </div>
+            </div>
+            <div class="market-right-side">
+              <div class="coin-price">
+                <h4>${sym}${price}</h4>
+                <span class="${cls}">${displayText}</span>
+              </div>
+              <button class="star-btn ${isFav ? 'fav' : ''}" onclick="toggleFavorite(event, '${c.id}')">${isFav ? '★' : '☆'}</button>
+            </div>
+          </div>
+        `;
+      });
+      list.innerHTML = html;
+    }
+
+    function filterMarketList() {
+      const q = document.getElementById("marketSearch").value.toLowerCase();
+      const sortType = document.getElementById("marketSort").value;
+
+      let filtered = allAssets.filter(a => {
+        const matchesSearch = a.type === "crypto" && (a.name.toLowerCase().includes(q) || a.symbol.toLowerCase().includes(q));
+        const matchesTab = currentMarketTab === "all" || userPrefs.favorites.includes(a.id);
+        return matchesSearch && matchesTab;
+      });
+
+      if (sortType === "gainers") filtered.sort((a, b) => b.change24h - a.change24h);
+      else if (sortType === "losers") filtered.sort((a, b) => a.change24h - b.change24h);
+      else if (sortType === "name") filtered.sort((a, b) => a.name.localeCompare(b.name));
+      else filtered.sort((a, b) => b.priceUsd - a.priceUsd);
+
+      renderMarketList(filtered);
+    }
+
+    function selectFromMarket(coinId) {
+      const found = allAssets.find(a => a.id === coinId);
+      if (found) {
+        fromAsset = found;
+        updatePickerButtons();
+        switchPage("converter");
+        convert();
+      }
+    }
+
+    function openPicker(side) {
+      activePickerSide = side;
+      document.getElementById("assetSearch").value = "";
+      renderAssetPickerList(allAssets);
+
+      if (side === "holding") {
+        document.getElementById("addHoldingModal").classList.add("hidden-by-picker");
+      }
+
+      document.getElementById("assetModal").classList.add("active");
+      setTimeout(() => document.getElementById("assetSearch").focus(), 100);
+    }
+
+    function closePicker() {
+      document.getElementById("assetModal").classList.remove("active");
+
+      if (activePickerSide === "holding") {
+        document.getElementById("addHoldingModal").classList.remove("hidden-by-picker");
+      }
+    }
+
+    function filterAssets() {
+      const q = document.getElementById("assetSearch").value.toLowerCase();
+      const filtered = allAssets.filter(a => a.name.toLowerCase().includes(q) || a.symbol.toLowerCase().includes(q));
+      renderAssetPickerList(filtered);
+    }
+
+    function renderAssetPickerList(items) {
+      const list = document.getElementById("assetList");
+      list.innerHTML = items.map(a => `
+        <div class="asset-option" onclick="chooseAsset('${a.id}')">
+          <div class="asset-left">
+            ${a.image ? `<img src="${a.image}" />` : `<div class="fiat-badge">${a.symbol.slice(0,2)}</div>`}
+            <div>
+              <div style="font-weight:700; font-size:14px;">${a.symbol}</div>
+              <div style="font-size:12px; color:var(--muted);">${a.name}</div>
+            </div>
+          </div>
+          <div style="font-size:12px; color:var(--muted); text-transform:uppercase;">${a.type}</div>
+        </div>
+      `).join("");
+    }
+
+    function chooseAsset(id) {
+      const selected = allAssets.find(a => a.id === id);
+      if (!selected) return;
+      if (activePickerSide === "from") {
+        fromAsset = selected;
+        updatePickerButtons();
+        convert();
+      } else if (activePickerSide === "to") {
+        toAsset = selected;
+        updatePickerButtons();
+        convert();
+      } else if (activePickerSide === "holding") {
+        selectedHoldingAsset = selected;
+        document.getElementById("holdingCoinSymbol").innerText = `${selected.symbol} - ${selected.name}`;
+      }
+      closePicker();
+    }
+
+    /* Portfolio Functions */
+    function openAddHoldingModal() {
+      selectedHoldingAsset = allAssets.find(a => a.id === "bitcoin") || allAssets[0];
+      document.getElementById("holdingCoinSymbol").innerText = `${selectedHoldingAsset.symbol} - ${selectedHoldingAsset.name}`;
+      document.getElementById("holdingQty").value = "";
+      document.getElementById("addHoldingModal").classList.add("active");
+    }
+
+    function closeAddHoldingModal() {
+      document.getElementById("addHoldingModal").classList.remove("active");
+    }
+
+    function saveHolding() {
+      const qty = parseFloat(document.getElementById("holdingQty").value) || 0;
+      if (qty <= 0 || !selectedHoldingAsset) return;
+
+      const existing = userPrefs.holdings.find(h => h.id === selectedHoldingAsset.id);
+      if (existing) {
+        existing.qty += qty;
+      } else {
+        userPrefs.holdings.push({ id: selectedHoldingAsset.id, qty: qty });
+      }
+
+      localStorage.setItem("pref_holdings", JSON.stringify(userPrefs.holdings));
+      closeAddHoldingModal();
+      renderPortfolio();
+    }
+
+    function deleteHolding(coinId) {
+      userPrefs.holdings = userPrefs.holdings.filter(h => h.id !== coinId);
+      localStorage.setItem("pref_holdings", JSON.stringify(userPrefs.holdings));
+      renderPortfolio();
+    }
+
+    function renderPortfolio() {
+      const baseRate = (allAssets.find(a => a.id === globalCurrency) || { priceUsd: 0.0119 }).priceUsd;
+      const sym = currencySymbols[globalCurrency] || globalCurrency.toUpperCase() + " ";
+      const list = document.getElementById("portfolioList");
+
+      if (userPrefs.holdings.length === 0) {
+        list.innerHTML = `<div style="text-align:center; color:var(--muted); padding:30px;">No holdings added yet. Click '+ Add Asset' to start tracking.</div>`;
+        document.getElementById("portfolioTotal").innerText = `${sym}0.00`;
+        return;
+      }
+
+      let totalVal = 0;
+      let html = "";
+
+      userPrefs.holdings.forEach(h => {
+        const coin = allAssets.find(a => a.id === h.id);
+        if (coin) {
+          const valInBase = (h.qty * coin.priceUsd) / baseRate;
+          totalVal += valInBase;
+          html += `
+            <div class="holding-item">
+              <div class="market-left">
+                <img src="${coin.image}" width="32" height="32" style="border-radius:50%;" />
+                <div>
+                  <h4 style="font-weight:700;">${coin.name}</h4>
+                  <span style="font-size:12px; color:var(--muted);">${h.qty} ${coin.symbol}</span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div style="text-align:right;">
+                  <h4 style="font-weight:700;">${sym}${formatNumber(valInBase)}</h4>
+                </div>
+                <button class="del-holding" onclick="deleteHolding('${coin.id}')">🗑</button>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      list.innerHTML = html;
+      document.getElementById("portfolioTotal").innerText = `${sym}${formatNumber(totalVal)}`;
+    }
+
+    function convert() {
+      const amount = parseFloat(document.getElementById("fromAmount").value) || 0;
+      if (!fromAsset.priceUsd || !toAsset.priceUsd) return;
+
+      const unitRate = fromAsset.priceUsd / toAsset.priceUsd;
+      const result = amount * unitRate;
+
+      const formattedResult = formatNumber(result);
+      document.getElementById("toAmount").value = formattedResult;
+      document.getElementById("rateSummary").innerText = `1 ${fromAsset.symbol} = ${formatNumber(unitRate)} ${toAsset.symbol}`;
+    }
+
+    document.getElementById("fromAmount").addEventListener("input", convert);
+
+    document.getElementById("swapBtn").addEventListener("click", () => {
+      const temp = fromAsset;
+      fromAsset = toAsset;
+      toAsset = temp;
+      updatePickerButtons();
+      convert();
+    });
+
+    function multiplyAmount(factor) {
+      const input = document.getElementById("fromAmount");
+      input.value = ((parseFloat(input.value) || 1) * factor).toFixed(2).replace(/\.00$/, "");
+      convert();
+    }
+
+    function resetAmount() {
+      document.getElementById("fromAmount").value = 1;
+      convert();
+    }
+
+    function copyResult() {
+      const val = document.getElementById("toAmount").value;
+      navigator.clipboard.writeText(val);
+      const btn = document.querySelector(".copy-btn");
+      btn.innerText = "Copied!";
+      setTimeout(() => (btn.innerText = "Copy"), 1500);
+    }
+
+    function calculateROI() {
+      const invest = parseFloat(document.getElementById("calcInvest").value) || 0;
+      const buy = parseFloat(document.getElementById("calcBuy").value) || 0;
+      const sell = parseFloat(document.getElementById("calcSell").value) || 0;
+      const resEl = document.getElementById("roiResult");
+
+      if (invest > 0 && buy > 0 && sell > 0) {
+        const profit = ((sell - buy) / buy) * invest;
+        const pct = (((sell - buy) / buy) * 100).toFixed(2);
+        resEl.style.color = profit >= 0 ? "var(--green)" : "var(--red)";
+        resEl.innerText = `${profit >= 0 ? "+" : ""}${formatNumber(profit)} (${pct}%)`;
+      } else {
+        resEl.style.color = "var(--text)";
+        resEl.innerText = "0.00 (0%)";
+      }
+    }
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      });
+    }
+
+    applyPreferences();
+    loadCachedAssets();
+    fetchAllData();
+    startDisplayToggle();
+  </script>
+</body>
+</html>
