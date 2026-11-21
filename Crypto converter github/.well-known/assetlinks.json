@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.cryptoconverter_ruby.twa",
+        "sha256_cert_fingerprints": ["B6:11:AA:3E:02:03:D4:F5:B7:0D:58:20:D6:15:22:40:9D:C2:E3:70:33:9E:56:0A:2B:7E:AB:56:BD:66:02:5B"]
+      }
+    }]
